@@ -29,17 +29,16 @@ Este relatório descreve a implementação e as decisões de engenharia tomadas 
    - Reduz brutalmente overhead de spawn/join e barreiras implícitas.  
 
 3. **Divisão de Trabalho e Sincronização**  
-   - `#pragma omp for nowait schedule(static,64)`: usa escalonamento estático com chunk de 64 iterações, buscando um bom balanceamento de carga e reduzindo overhead de barreiras.  
+   - `#pragma omp for nowait schedule()`: foram feitas runs usando (static, 1), (static, 64), (guided, 1), (guided, 64) para avaliar qual divisao melhor se comporta para o trabalho dado.  
    - `#pragma omp barrier` ao fim de cada fase: garante que todas as threads concluam antes de avançar, mantendo a corretude do algoritmo.  
 
 **4. Características da Máquina**  
 Os testes foram executados em um ambiente WSL (Windows Subsystem for Linux) rodando Ubuntu, com as seguintes especificações de hardware e software:  
 
-- **Sistema Operacional (WSL):** Ubuntu 20.04 LTS (ou superior) sobre Windows 10/11.  
+- **Sistema Operacional (WSL):** Ubuntu 20.04 LTS sobre Windows 11.  
 - **Processador:** AMD Ryzen 5 5600X, 6 núcleos físicos e 12 threads lógicas, cache L1: 384 KiB, L2: 3 MiB, L3: 32 MiB.  
-- **Memória RAM:** 32 GiB DDR4, frequência típica entre 2666 MHz e 3600 MHz.  
-- **Configurações de Afinidade:** `OMP_PLACES=cores` e `OMP_PROC_BIND=TRUE`, garantindo binding a núcleos físicos.  
-- **Compilador e Flags:** GCC 9.4.0 (ou superior) com `-O2 -fopenmp`.  
+- **Memória RAM:** 32 GiB DDR4, 2666 MHz.  
+- **Configurações de Afinidade:** `OMP_PLACES=cores` e `OMP_PROC_BIND=TRUE`, garantindo binding a núcleos físicos.   
 
 Essas características impactam diretamente:  
 - Eficiência na cache L3 de 32 MiB, influenciando a performance de acesso à memória.  
