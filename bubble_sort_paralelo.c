@@ -4,7 +4,9 @@
 #include <omp.h>
 #include <time.h>
 
-// --- Flush de cache simulando working set frio ---
+// --- Flush de cache simulando working set frio --- 
+// Nas primeiras execuções, tivemos eficiência acima de 100%, com isso implementamos flush de cache, mas decidimos não usar para avaliar também o impacto do cache
+// entretanto após remover o flush a eficiência estabilizou em torno de abaixo de 100%, tendo poucos casos acima de 100%
 void flush_caches() {
     static const size_t FLUSH_SIZE = 100 * 1024 * 1024; // 100 MiB > L3 (32 MiB)
     static char *buffer = NULL;
@@ -66,7 +68,7 @@ void parallel_bubble_sort(int *A, int n, int num_threads) {
         int phase, i, tmp;
         for (phase = 0; phase < n; phase++) {
             if (phase % 2 == 0) {
-                #pragma omp for nowait schedule(guided,64)
+                #pragma omp for schedule(guided,1)
                 for (i = 0; i < n - 1; i += 2) {
                     if (A[i] > A[i+1]) {
                         tmp    = A[i];
@@ -75,7 +77,7 @@ void parallel_bubble_sort(int *A, int n, int num_threads) {
                     }
                 }
             } else {
-                #pragma omp for nowait schedule(guided,64)
+                #pragma omp for schedule(guided,1)
                 for (i = 1; i < n - 1; i += 2) {
                     if (A[i] > A[i+1]) {
                         tmp    = A[i];
@@ -84,7 +86,6 @@ void parallel_bubble_sort(int *A, int n, int num_threads) {
                     }
                 }
             }
-            #pragma omp barrier
         }
     }
 }
@@ -175,7 +176,7 @@ int main() {
     srand((unsigned)time(NULL));
 
     // inicializa CSV
-    init_csv("guided_64.csv");
+    init_csv("dynamic_1.csv");
 
     // set affinity
     setenv("OMP_PROC_BIND", "TRUE", 1);
